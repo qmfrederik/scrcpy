@@ -275,7 +275,7 @@ public class ScreenEncoder implements Device.RotationListener {
         // On Android 12 preview, SDK_INT is still R (not S), but CODENAME is "S".
         boolean secure = Build.VERSION.SDK_INT < Build.VERSION_CODES.R || (Build.VERSION.SDK_INT == Build.VERSION_CODES.R && !"S"
                 .equals(Build.VERSION.CODENAME));
-        return SurfaceControl.createDisplay("scrcpy", secure);
+        return SurfaceControl.createDisplay("epgw", secure);
     }
 
     private static void configure(MediaCodec codec, MediaFormat format) {
