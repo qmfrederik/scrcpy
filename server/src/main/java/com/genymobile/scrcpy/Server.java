@@ -132,7 +132,7 @@ public final class Server {
                     controller.control();
                 } catch (IOException e) {
                     // this is expected on close
-                    Ln.d("Controller stopped");
+                    Ln.e("Controller stopped", e);
                 }
             }
         });
@@ -148,7 +148,7 @@ public final class Server {
                     sender.loop();
                 } catch (IOException | InterruptedException e) {
                     // this is expected on close
-                    Ln.d("Device message sender stopped");
+                    Ln.e("Device message sender stopped", e);
                 }
             }
         });
