@@ -50,6 +50,7 @@ public final class DesktopConnection implements Closeable {
         LocalSocket videoSocket;
         LocalSocket controlSocket = null;
         if (tunnelForward) {
+            Ln.d("Start listening on " + SOCKET_NAME);
             LocalServerSocket localServerSocket = new LocalServerSocket(SOCKET_NAME);
             try {
                 videoSocket = localServerSocket.accept();
@@ -69,9 +70,11 @@ public final class DesktopConnection implements Closeable {
                 localServerSocket.close();
             }
         } else {
+            Ln.d("Connecting to " + SOCKET_NAME + " to initialize the video socket.");
             videoSocket = connect(SOCKET_NAME);
             if (control) {
                 try {
+                    Ln.d("Connecting to " + SOCKET_NAME + " to initialize the control socket.");
                     controlSocket = connect(SOCKET_NAME);
                 } catch (IOException | RuntimeException e) {
                     videoSocket.close();
@@ -80,6 +83,7 @@ public final class DesktopConnection implements Closeable {
             }
         }
 
+        Ln.d("Successfully created a new desktop connection");
         return new DesktopConnection(videoSocket, controlSocket);
     }
 
