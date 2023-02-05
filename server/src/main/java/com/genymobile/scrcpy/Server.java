@@ -100,7 +100,7 @@ public final class Server {
                 screenEncoder.streamScreen(device, connection.getVideoFd());
             } catch (IOException e) {
                 // this is expected on close
-                Ln.d("Screen streaming stopped");
+                Ln.e("Screen streaming stopped", e);
             } finally {
                 initThread.interrupt();
                 if (controllerThread != null) {
