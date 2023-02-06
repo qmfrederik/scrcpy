@@ -1,5 +1,8 @@
 package com.genymobile.scrcpy;
 
+import java.net.ServerSocket;
+import java.net.Socket;
+
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
@@ -15,19 +18,20 @@ public final class DesktopConnection implements Closeable {
 
     private static final int DEVICE_NAME_FIELD_LENGTH = 64;
 
-    private static final String SOCKET_NAME = "epgw";
+    // private static final String SOCKET_NAME = "epgw";
+    private static final int SOCKET_PORT = 17894;
 
-    private final LocalSocket videoSocket;
+    private final Socket videoSocket;
     private final FileDescriptor videoFd;
 
-    private final LocalSocket controlSocket;
+    private final Socket controlSocket;
     private final InputStream controlInputStream;
     private final OutputStream controlOutputStream;
 
     private final ControlMessageReader reader = new ControlMessageReader();
     private final DeviceMessageWriter writer = new DeviceMessageWriter();
 
-    private DesktopConnection(LocalSocket videoSocket, LocalSocket controlSocket) throws IOException {
+    private DesktopConnection(Socket videoSocket, Socket controlSocket) throws IOException {
         this.videoSocket = videoSocket;
         this.controlSocket = controlSocket;
         if (controlSocket != null) {
@@ -37,21 +41,20 @@ public final class DesktopConnection implements Closeable {
             controlInputStream = null;
             controlOutputStream = null;
         }
-        videoFd = videoSocket.getFileDescriptor();
+        videoFd = ((FileInputStream)videoSocket.getInputStream()).getFD();
     }
 
-    private static LocalSocket connect(String abstractName) throws IOException {
-        LocalSocket localSocket = new LocalSocket();
-        localSocket.connect(new LocalSocketAddress(abstractName));
+    private static Socket connect(int port) throws IOException {
+        Socket localSocket = new Socket("127.0.0.1", port);
         return localSocket;
     }
 
     public static DesktopConnection open(boolean tunnelForward, boolean control, boolean sendDummyByte) throws IOException {
-        LocalSocket videoSocket;
-        LocalSocket controlSocket = null;
+        Socket videoSocket;
+        Socket controlSocket = null;
         if (tunnelForward) {
-            Ln.d("Start listening on " + SOCKET_NAME);
-            LocalServerSocket localServerSocket = new LocalServerSocket(SOCKET_NAME);
+            Ln.d("Start listening on " + SOCKET_PORT);
+            ServerSocket localServerSocket = new ServerSocket(SOCKET_PORT);
             try {
                 videoSocket = localServerSocket.accept();
                 if (sendDummyByte) {
@@ -70,12 +73,12 @@ public final class DesktopConnection implements Closeable {
                 localServerSocket.close();
             }
         } else {
-            Ln.d("Connecting to " + SOCKET_NAME + " to initialize the video socket.");
-            videoSocket = connect(SOCKET_NAME);
+            Ln.d("Connecting to " + SOCKET_PORT + " to initialize the video socket.");
+            videoSocket = connect(SOCKET_PORT);
             if (control) {
                 try {
-                    Ln.d("Connecting to " + SOCKET_NAME + " to initialize the control socket.");
-                    controlSocket = connect(SOCKET_NAME);
+                    Ln.d("Connecting to " + SOCKET_PORT + " to initialize the control socket.");
+                    controlSocket = connect(SOCKET_PORT);
                 } catch (IOException | RuntimeException e) {
                     videoSocket.close();
                     throw e;
